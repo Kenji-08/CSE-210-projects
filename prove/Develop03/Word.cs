@@ -1,7 +1,7 @@
 class Word
 {
-    string _word;
-    bool _shown;
+    private string _word;
+    private bool _shown;
 
     public Word(String w) // setter
     {

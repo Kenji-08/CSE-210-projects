@@ -2,10 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 class Scripture
 {
-    Reference _reference;
-    string _text;
-    bool _IsAllHidden = false;
-    List<Word> _words = new List<Word>();
+    private Reference _reference;
+    private string _text;
+    private List<Word> _words = new List<Word>();
 
     public Scripture(Reference refer, string txt)
     {
@@ -53,20 +52,14 @@ class Scripture
         }
         if (hiddenCount == _words.Count())
         {
-            _IsAllHidden = true;
             return true;
         }
         else
         {
-            _IsAllHidden = false;
             return false;
         }
     }
 
-    public bool IsShown(Word wrd)
-    {
-        return wrd.IsShown();
-    }
     public void Display()
     {
         _reference.Display();

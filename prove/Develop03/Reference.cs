@@ -2,10 +2,10 @@ using System.ComponentModel;
 
 class Reference
 {
-    string _book;
-    string _chapter;
-    string _verse;
-    string _endVerse;
+    private string _book;
+    private string _chapter;
+    private string _verse;
+    private string _endVerse;
 
     public Reference(string bk, string chpt, string sVerse)
     {
@@ -19,11 +19,6 @@ class Reference
         _chapter = chpt;
         _verse = sVerse;
         _endVerse = "-" + eVerse;
-    }
-
-    public string GetFull()
-    {
-        return $"{_book} {_chapter}:{_verse}{_endVerse}";
     }
 
     public void Display()
