@@ -33,7 +33,7 @@ class Flashcard
         "ワ",             "ヲ",
                  "ン",];
     // index of the first katakana character in the _kana array             
-    string _katakanaIndex = 46;
+    int _katakanaIndex = 46;
     public string _kanji;
     public string _furigana;
     public string _english;

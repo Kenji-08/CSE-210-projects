@@ -11,19 +11,10 @@ class Program
     {
         Flashcard card = new Flashcard();
         string input = "";
-        Console.WriteLine("Anki CSV Writer. Press \'q\' to quit");
-        do
-        {
-            // Kanji
-            Console.WriteLine("Kanji: ");
-            input = Console.ReadLine();
-            card._kanji = input;
-
-            // Furigana
-            Console.WriteLine("Furigana: ");
-            input = Console.ReadLine();
-            card._furigana = input;
-        } while (input != "q");
+        Console.WriteLine("""
+                            Anki Core 2000 CSV Writer.
+                            Press w to write cards, s to save to the CSV file
+                        """);
     }
 
     static void SaveCardFile(Flashcard card)
