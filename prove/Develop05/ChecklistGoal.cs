@@ -15,7 +15,6 @@ class ChecklistGoal : Goal
         GotBonus = false;
     }
 
-    [JsonConstructor]
     public ChecklistGoal(string title, string desc, int score, int timesAwarded, int bonus, bool gotBonus, int maxAwards) : base(title, desc, score)
     {
         TimesAwarded = timesAwarded;

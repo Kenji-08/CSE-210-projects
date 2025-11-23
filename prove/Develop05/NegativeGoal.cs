@@ -4,7 +4,6 @@ class NegativeGoal : Goal
 {
     public NegativeGoal(string title, string desc, int score) : base(title, desc, score){}
 
-    [JsonConstructor]
     public NegativeGoal(){}
 
     public override void Award()

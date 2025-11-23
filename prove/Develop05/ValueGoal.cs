@@ -7,7 +7,6 @@ class ValueGoal : Goal
 
     public ValueGoal(){}
 
-    [JsonConstructor]    
     public ValueGoal(string title, string desc, int score, int target, int current, int Target) : base(title, desc, score)
     {
         CurrentNumber = current;
