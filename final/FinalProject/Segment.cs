@@ -1,7 +1,7 @@
-abstract class Segment
+class Segment
 {
-    float _length;
-    int _index;
+    protected float _length;
+    protected int _index;
 
     public Segment(float length, int index)
     {
@@ -9,6 +9,6 @@ abstract class Segment
         _index = index;
     }
 
-    abstract public float GetSpeedModifier();
-    abstract public float GetOvertakeMod();
+    virtual public float GetSpeedModifier(){return 0;}
+    virtual public float GetOvertakeMod(){return 0;}
 }

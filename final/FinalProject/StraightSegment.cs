@@ -1,6 +1,6 @@
 class StraightSegment : Segment
 {
-    StraightSegment(float length, int index) : base(length, index)
+    public StraightSegment(float length, int index) : base(length, index)
     {
     }
 

@@ -1,13 +1,13 @@
 class Driver
 {
-    string _name;
-    float _reaction;
-    float _cornerSkill;
-    float _agility;
-    Car _car;
-    int _currentPlace;
-    int _segmentIndex;
-    float _segmentProgress;
+    private string _name;
+    private float _reaction;
+    private float _cornerSkill;
+    private float _agility;
+    private Car _car;
+    private int _currentPlace;
+    private int _segmentIndex;
+    private float _segmentProgress;
 
     public Driver(string name, Car car)
     {
@@ -32,7 +32,12 @@ class Driver
         _segmentProgress = 0.0f;
     }
 
-    public void AttemptOVertake(Driver other)
+    public void Drive(Segment segment)
+    {
+        
+    }
+
+    public void AttemptOvertake(Driver other)
     {
         
     }
