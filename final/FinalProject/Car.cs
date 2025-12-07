@@ -1,5 +1,7 @@
 class Car
 {
+    int _id;
+    string _name;
     float _speed;
     float _currentSpeed;
     float _acceleration;
@@ -7,22 +9,14 @@ class Car
     float _condition;
     Tire _tire;
     
-    public Car(float speed, float acceleration, float topSpeed, Tire tire)
+    public Car(int id, string name, float speed, float topSpeed, float acceleration, Tire tire)
     {
+        _id = id;
+        _name = name;
         _speed = speed;
         _acceleration = acceleration;
         _topSpeed = topSpeed;
         _condition = 1.0f; // New car condition
-        _tire = tire;
-        _currentSpeed = 0f;
-    }
-
-    public Car(float speed, float acceleration, float topSpeed, float condition, Tire tire)
-    {
-        _speed = speed;
-        _acceleration = acceleration;
-        _topSpeed = topSpeed;
-        _condition = condition;
         _tire = tire;
         _currentSpeed = 0f;
     }

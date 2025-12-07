@@ -9,10 +9,13 @@ class Program
     static List<Race> _races;
     static List<Driver> _drivers;
     static List<Car> _cars;
-    static IniFile gameData;
+    static IniFile _gameData;
+    static IniFile _currentSave;
+    static string _defaultSavePath = "./Saves/";
 
     static void Main(string[] args)
     {
+        _gameData = new IniFile($"{_defaultSavePath}GameData.ini");
         StartMenu();
         // LoadGame();
     }
@@ -25,11 +28,12 @@ class Program
         {
             try
             {
-                Console.Clear();
+                // Console.Clear();
                 Console.WriteLine(
                     "Welcome to the Race Simulator\n" +
                     "\t1. New game\n" +
-                    "\t2. Load Game"
+                    "\t2. Load Game\n" +
+                    "\t3. Quit"
                 );
                 int option = Input<int>("Please type an option: ");
                 switch (option)
@@ -39,6 +43,9 @@ class Program
                         break;
                     case 2:
                         LoadGame();
+                        break;
+                    case 3:
+                        Environment.Exit(0);
                         break;
                     default:
                         throw new Exception("Sorry that is not a valid option please try again.");
@@ -66,19 +73,33 @@ class Program
     static void LoadGame()
     {
         DisplaySaves(); // REMOVE: if not using this then get rid of it
-        string path = Input<string>("Please enter the file name to load: ");
 
-        IniFile ini = new("GameData.ini");
+        string fileName = Input<string>("Please enter the file name to load: ");
+        if (!fileName.Contains(".ini"))
+        {
+            fileName += ".ini";
+        }
+
+        try
+        {
+            _currentSave = new IniFile($"{_defaultSavePath}{fileName}");
+            LoadCars(_gameData);
+            LoadDrivers(); // TODO: parse _gameData when it's configurable
+            LoadRaces(); // TODO: parse _gameData when it's configurable
+            RunGame();
+        }
+        catch (Exception e) // CHANGE: if wanted
+        {
+            Console.WriteLine("Sorry something went wrong returning to menu...");
+            Thread.Sleep(2000);
+            StartMenu();
+        }
     }
 
     static void NewGame() // TODO:
     {
-        gameData = new IniFile("GameData.ini");
-        
-        // Read a car
-        string car1 = gameData.Get("cars", "car1");
-        Console.WriteLine($"Car1: {car1}");  // Output: Speedster,8,6,5
-
+        string fileName = Input<string>("Please enter the name of this save file: ");
+        _currentSave = new IniFile($"{_defaultSavePath}{fileName}");
     }
 
     static void RunGame() // TODO:
@@ -91,12 +112,40 @@ class Program
 
     }
 
-    static void LoadCars() // TODO:
+    static void LoadCars(IniFile ini) // TODO: finish constructor
     {
-        Dictionary<string, string> carSection = gameData.GetSection("cars");
+        Dictionary<string, string> section = _gameData.GetSection("cars");
 
-        
+        foreach (KeyValuePair<string, string> data in section)
+        {
+            string id = data.Key;
+            string raw = data.Value;
+            string[] parts = raw.Split();
+
+            // Format: CarID=Name,Speed,TopSpeed,Acceleration,TireCompound
+            Car c = new Car(int.Parse(id), parts[0], float.Parse(parts[1]), float.Parse(parts[2]), float.Parse(parts[3]), new Tire(parts[4]));
+
+            _cars.Add(c);
+        }
     }
-    static void LoadRaces(){}
-    static void LoadTracks(){} // REMOVE: if needed
+    static void LoadDrivers() // TODO: Make configurable
+    {
+        Driver __driver1 = new Driver("Eduardo", _cars[0]);
+
+        _drivers = [__driver1];
+    }
+    static void LoadRaces() // TODO: Make configurable
+    {
+        Segment straight1 = new StraightSegment(250, 0);
+        Segment turn1 = new CornerSegment(250, 1, 0.1f);
+        Segment straight2 = new StraightSegment(250, 2);
+        Segment turn2 = new CornerSegment(250, 3, 0.1f);
+
+        List<Segment> segments = [straight1, turn1, straight2, turn2];
+
+        Track track = new Track("Circuit", segments, 1000);
+        Race race = new Race("Test Track", track, _drivers);
+        _races.Add(race);
+    }
+    static void LoadTracks() { } // REMOVE: if needed
 }
