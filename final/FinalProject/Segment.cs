@@ -9,6 +9,10 @@ class Segment
         _index = index;
     }
 
-    virtual public float GetSpeedModifier(){return 0;}
-    virtual public float GetOvertakeMod(){return 0;}
+    virtual public float GetSpeedModifier(){return 1f;}
+    virtual public float GetOvertakeMod(){return 0f;}
+    public float GetLength()
+    {
+        return _length;
+    }
 }

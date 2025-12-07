@@ -11,8 +11,13 @@ class Track
         _length = length;
     }
 
-    public void GetNextSegment(int currentIndex)
+    public Segment GetNextSegment(int currentIndex)
     {
-        
+        return _segments[currentIndex+1];
+    }
+
+    public Segment GetSegment(int index)
+    {
+        return _segments[index];
     }
 }

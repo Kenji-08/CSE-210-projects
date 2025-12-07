@@ -1,6 +1,6 @@
-class Car
+class Car // TODO: balance speed
 {
-    int _id;
+    string _id;
     string _name;
     float _speed;
     float _currentSpeed;
@@ -8,8 +8,9 @@ class Car
     float _topSpeed;
     float _condition;
     Tire _tire;
-    
-    public Car(int id, string name, float speed, float topSpeed, float acceleration, Tire tire)
+    float _position;
+
+    public Car(string id, string name, float speed, float topSpeed, float acceleration, Tire tire)
     {
         _id = id;
         _name = name;
@@ -39,15 +40,34 @@ class Car
         _tire = newTire;
     }
 
-    public float GetEffectiveSpeed(Segment segment)
+    public float GetEffectiveSpeed()
     {
-        _currentSpeed += _speed * _condition * _tire.GetGrip() * _acceleration * segment.GetSpeedModifier(); // May change
-        if (_currentSpeed > _topSpeed){return _topSpeed;}
-        else {return _currentSpeed;}
+        return _currentSpeed;
     }
 
-    public void Accelerate(float amount)
+    public float GetPosition()
     {
-        _acceleration = amount;
+        return _position;
+    }
+
+    public void SetPosition(float num)
+    {
+        _position = num;
+    }
+
+    public void Accelerate(float segmentMod)
+    {
+        _currentSpeed += (float)Math.Pow(Convert.ToDouble(_speed * _condition * _tire.GetGrip() * segmentMod), Convert.ToDouble(_acceleration)); // May change
+        _position += _currentSpeed;
+        if (_currentSpeed > _topSpeed)
+        {
+            _currentSpeed = _topSpeed;
+        }
+    }
+
+    public void Deccelerate()
+    {
+        _currentSpeed -= 1 / _currentSpeed;
+        _position += _currentSpeed;
     }
 }

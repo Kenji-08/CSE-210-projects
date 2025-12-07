@@ -6,9 +6,9 @@ using static InputHelper;
 
 class Program
 {
-    static List<Race> _races;
-    static List<Driver> _drivers;
-    static List<Car> _cars;
+    static List<Race> _races = new List<Race>();
+    static List<Driver> _drivers = new List<Driver>();
+    static List<Car> _cars = new List<Car>();
     static IniFile _gameData;
     static IniFile _currentSave;
     static string _defaultSavePath = "./Saves/";
@@ -17,7 +17,6 @@ class Program
     {
         _gameData = new IniFile($"{_defaultSavePath}GameData.ini");
         StartMenu();
-        // LoadGame();
     }
 
     static void StartMenu()
@@ -91,12 +90,13 @@ class Program
         catch (Exception e) // CHANGE: if wanted
         {
             Console.WriteLine("Sorry something went wrong returning to menu...");
+            Console.WriteLine();
             Thread.Sleep(2000);
             StartMenu();
         }
     }
 
-    static void NewGame() // TODO:
+    static void NewGame() // TODO: add loading in common stuff and make skill allocation name and such
     {
         string fileName = Input<string>("Please enter the name of this save file: ");
         _currentSave = new IniFile($"{_defaultSavePath}{fileName}");
@@ -104,7 +104,10 @@ class Program
 
     static void RunGame() // TODO:
     {
-
+        foreach (Race race in _races)
+        {
+            race.StartRace();
+        }
     }
 
     static void DisplaySaves() // TODO: maybe
@@ -120,19 +123,20 @@ class Program
         {
             string id = data.Key;
             string raw = data.Value;
-            string[] parts = raw.Split();
+            string[] parts = raw.Split(',');
 
             // Format: CarID=Name,Speed,TopSpeed,Acceleration,TireCompound
-            Car c = new Car(int.Parse(id), parts[0], float.Parse(parts[1]), float.Parse(parts[2]), float.Parse(parts[3]), new Tire(parts[4]));
+            Car c = new Car(id, parts[0], float.Parse(parts[1]), float.Parse(parts[2]), float.Parse(parts[3]), new Tire(parts[4]));
 
             _cars.Add(c);
         }
     }
     static void LoadDrivers() // TODO: Make configurable
     {
-        Driver __driver1 = new Driver("Eduardo", _cars[0]);
+        Driver __player = new Driver("Player", _cars[0]);
+        Driver __driver1 = new Driver("Eduardo", _cars[1]);
 
-        _drivers = [__driver1];
+        _drivers = [__player, __driver1];
     }
     static void LoadRaces() // TODO: Make configurable
     {
