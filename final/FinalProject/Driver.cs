@@ -75,7 +75,7 @@ class Driver
 
     public void Drive(Segment segment)
     {
-        if (_segmentProgress < 0.60f)
+        if (_segmentProgress < 0.80f)
         {
             _car.Accelerate(segment.GetSpeedModifier());
         }

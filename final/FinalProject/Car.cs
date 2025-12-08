@@ -1,4 +1,4 @@
-class Car // TODO: balance speed
+class Car // TODO: balance values
 {
     string _id;
     string _name;
@@ -7,10 +7,11 @@ class Car // TODO: balance speed
     float _acceleration;
     float _topSpeed;
     float _condition;
+    float _brakes;
     Tire _tire;
     float _position;
 
-    public Car(string id, string name, float speed, float topSpeed, float acceleration, Tire tire)
+    public Car(string id, string name, float speed, float topSpeed, float acceleration, float brakes, Tire tire)
     {
         _id = id;
         _name = name;
@@ -20,6 +21,7 @@ class Car // TODO: balance speed
         _condition = 1.0f; // New car condition
         _tire = tire;
         _currentSpeed = 0f;
+        _brakes = brakes;
     }
 
     public void UpdateCondition(float amount)
@@ -67,7 +69,8 @@ class Car // TODO: balance speed
 
     public void Deccelerate()
     {
-        _currentSpeed -= 1 / _currentSpeed;
+        _currentSpeed -= _brakes / _currentSpeed;
+        if (_currentSpeed < 0) { _currentSpeed = 1;}
         _position += _currentSpeed;
     }
 }

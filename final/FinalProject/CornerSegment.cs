@@ -1,10 +1,12 @@
 class CornerSegment : Segment
 {
     float _difficulty;
+    float _maxSpeed;
 
-    public CornerSegment(float length, int index, float difficulty) : base(length, index)
+    public CornerSegment(float length, int index, float difficulty, float maxSpeed) : base(length, index)
     {
         _difficulty = difficulty;
+        _maxSpeed = maxSpeed;
     }
 
     override public float GetSpeedModifier()
@@ -16,4 +18,6 @@ class CornerSegment : Segment
     {
         return 0.5f * (1.0f - _difficulty);
     }
+
+    public float getMaxSpeed(){return _maxSpeed;}
 }

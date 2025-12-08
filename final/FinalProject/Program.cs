@@ -32,7 +32,8 @@ class Program
                     "Welcome to the Race Simulator\n" +
                     "\t1. New game\n" +
                     "\t2. Load Game\n" +
-                    "\t3. Quit"
+                    "\t3. Display Saves\n"+
+                    "\t4. Quit"
                 );
                 int option = Input<int>("Please type an option: ");
                 switch (option)
@@ -44,6 +45,9 @@ class Program
                         LoadGame();
                         break;
                     case 3:
+                        DisplaySaves();
+                        break;
+                    case 4:
                         Environment.Exit(0);
                         break;
                     default:
@@ -79,27 +83,32 @@ class Program
             fileName += ".ini";
         }
 
-        try
-        {
-            _currentSave = new IniFile($"{_defaultSavePath}{fileName}");
-            LoadCars(_gameData);
-            LoadDrivers(); // TODO: parse _gameData when it's configurable
-            LoadRaces(); // TODO: parse _gameData when it's configurable
-            RunGame();
-        }
-        catch (Exception e) // CHANGE: if wanted
-        {
-            Console.WriteLine("Sorry something went wrong returning to menu...");
-            Console.WriteLine();
-            Thread.Sleep(2000);
-            StartMenu();
-        }
+        // try
+        // {
+        _currentSave = new IniFile($"{_defaultSavePath}{fileName}");
+        LoadCommonData();
+        // }
+        // catch (Exception e) // CHANGE: if wanted
+        // {
+        //     Console.WriteLine("Sorry something went wrong returning to menu...");
+        //     Console.WriteLine();
+        //     Thread.Sleep(2000);
+        //     StartMenu();
+        // }
     }
 
     static void NewGame() // TODO: add loading in common stuff and make skill allocation name and such
     {
         string fileName = Input<string>("Please enter the name of this save file: ");
         _currentSave = new IniFile($"{_defaultSavePath}{fileName}");
+    }
+
+    static void LoadCommonData()
+    {
+        LoadCars(_gameData);
+        LoadDrivers(); // TODO: parse _gameData when it's configurable
+        LoadRaces(); // TODO: parse _gameData when it's configurable
+        RunGame();
     }
 
     static void RunGame() // TODO:
@@ -125,8 +134,8 @@ class Program
             string raw = data.Value;
             string[] parts = raw.Split(',');
 
-            // Format: CarID=Name,Speed,TopSpeed,Acceleration,TireCompound
-            Car c = new Car(id, parts[0], float.Parse(parts[1]), float.Parse(parts[2]), float.Parse(parts[3]), new Tire(parts[4]));
+            // Format: CarID=Name,Speed,TopSpeed,Acceleration,Brakes,TireCompound
+            Car c = new Car(id, parts[0], float.Parse(parts[1]), float.Parse(parts[2]), float.Parse(parts[3]), float.Parse(parts[4]), new Tire(parts[5]));
 
             _cars.Add(c);
         }
@@ -141,9 +150,9 @@ class Program
     static void LoadRaces() // TODO: Make configurable
     {
         Segment straight1 = new StraightSegment(250, 0);
-        Segment turn1 = new CornerSegment(250, 1, 0.1f);
+        Segment turn1 = new CornerSegment(250, 1, 0.8f, 15);
         Segment straight2 = new StraightSegment(250, 2);
-        Segment turn2 = new CornerSegment(250, 3, 0.1f);
+        Segment turn2 = new CornerSegment(250, 3, 0.8f, 15);
 
         List<Segment> segments = [straight1, turn1, straight2, turn2];
 

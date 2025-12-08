@@ -2,9 +2,10 @@ class Race // TODO: add functionality for random drivers
 {
     string _name;
     Track _track;
-    List<Driver> _podium;
+    List<Driver> _places = new List<Driver>();
     List<Driver> _drivers;
     string _weather;
+    bool _finished;
 
     public Race(string name, Track track, List<Driver> drivers)
     {
@@ -12,56 +13,75 @@ class Race // TODO: add functionality for random drivers
         _track = track;
         _weather = "Clear";
         _drivers = drivers;
+        _finished = false;
     }
 
-    public Race(string name, Track track, List<Driver> podium, string weather)
+    public Race(string name, Track track, List<Driver> places, string weather)
     {
         _name = name;
         _track = track;
+        _places = places;
         _weather = weather;
     }
 
 
     public void StartRace() // TODO: add the start lights logic
     {
-        for (float time = 1; time >= 0; time -= 0.01f)
+        for (float time = 3; time >= 0; time -= 0.01f)
         {
+            Console.Clear();
             Console.WriteLine(time);
-            Thread.Sleep(1);
+            Thread.Sleep(10);
         }
-        bool end = false;
         int temp = 0; // Temporary
         do
         {
             Update();
-            Thread.Sleep(500);
+            Thread.Sleep(250);
             temp++; // Temporary
-            if (temp >= 20)
+            if (temp >= 500) // Prevents from inf loop for now
             {
-                end = true;
+                _finished = true;
             }
         }
-        while (!end);
+        while (!_finished);
 
     }
 
     public void EndRace()
     {
-
+        Console.Clear();
+        Console.WriteLine("Race has finished! Places are:");
+        for (int d = 0 ; d < _places.Count() ; d++)
+        {
+            Console.WriteLine($"{d+1}. {_places[d].GetName()}");
+        }
     }
 
     public void Update()
     {
+        int driversFinished = _places.Count;
         foreach (Driver d in _drivers)
         {
-            Segment segment = _track.GetSegment(d.GetSegmentIndex());
-            if (d.GetProgress() > 1.0f)
+            if (d.GetCarPosition() >= _track.GetLength() && !_places.Contains(d))
             {
-                d.AddSegmentLengthCrossed(segment.GetLength());
-                segment = _track.GetNextSegment(d.GetSegmentIndex());
-                d.IncrementSegmentIndex();
+                _places.Add(d);
             }
-            d.Drive(segment);
+            else if (!_places.Contains(d))
+            {
+                Segment segment = _track.GetSegment(d.GetSegmentIndex());
+                if (d.GetProgress() > 1.0f)
+                {
+                    d.AddSegmentLengthCrossed(segment.GetLength());
+                    segment = _track.GetNextSegment(d.GetSegmentIndex());
+                    d.IncrementSegmentIndex();
+                }
+                d.Drive(segment);
+            }
+            if (driversFinished == _drivers.Count)
+            {
+                _finished = true;
+            }
         }
 
         DisplayStats();
@@ -70,10 +90,14 @@ class Race // TODO: add functionality for random drivers
     public void DisplayStats()
     {
         Console.Clear();
-        foreach (Driver d in _drivers)
+        if (!_finished)
         {
-            Console.WriteLine($"Name: {d.GetName()} Speed: {d.GetSpeed()} Progress: {d.GetProgress()} Position: {d.GetCarPosition()}");
+            foreach (Driver d in _drivers)
+            {
+                Console.WriteLine($"Name: {d.GetName()} Speed: {d.GetSpeed()} Progress: {d.GetProgress()} Position: {d.GetCarPosition()}");
+            }
+            Console.WriteLine("");
         }
-        Console.WriteLine("");
+        else{EndRace();}
     }
 }

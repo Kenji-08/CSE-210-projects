@@ -20,4 +20,6 @@ class Track
     {
         return _segments[index];
     }
+
+    public float GetLength(){return _length;}
 }

@@ -16,7 +16,7 @@ class IniFile
         data.Clear();
         string currentSection = "";
 
-        foreach (var line in File.ReadAllLines(path))
+        foreach (string line in File.ReadAllLines(path))
         {
             string trimmed = line.Trim();
 
@@ -30,7 +30,7 @@ class IniFile
             }
             else if (trimmed.Contains("="))
             {
-                var split = trimmed.Split('=', 2);
+                string[] split = trimmed.Split('=', 2);
                 string key = split[0].Trim();
                 string value = split[1].Trim();
 
@@ -57,10 +57,10 @@ class IniFile
     public void Save(string path)
     {
         using StreamWriter writer = new(path);
-        foreach (var section in data)
+        foreach (KeyValuePair<string, Dictionary<string, string>> section in data)
         {
             writer.WriteLine($"[{section.Key}]");
-            foreach (var kv in section.Value)
+            foreach (KeyValuePair<string, string> kv in section.Value)
                 writer.WriteLine($"{kv.Key}={kv.Value}");
             writer.WriteLine();
         }
