@@ -1,5 +1,6 @@
 using System;
 using System.Dynamic;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using static InputHelper;
@@ -9,6 +10,8 @@ class Program
     static List<Race> _races = new List<Race>();
     static List<Driver> _drivers = new List<Driver>();
     static List<Car> _cars = new List<Car>();
+    static List<Track> _tracks = new List<Track>();
+    static List<Segment> _segments = new List<Segment>();
     static IniFile _gameData;
     static IniFile _currentSave;
     static string _defaultSavePath = "./Saves/";
@@ -32,7 +35,7 @@ class Program
                     "Welcome to the Race Simulator\n" +
                     "\t1. New game\n" +
                     "\t2. Load Game\n" +
-                    "\t3. Display Saves\n"+
+                    "\t3. Display Saves\n" +
                     "\t4. Quit"
                 );
                 int option = Input<int>("Please type an option: ");
@@ -105,9 +108,12 @@ class Program
 
     static void LoadCommonData()
     {
+        // LOAD ORDER IS VERY IMPORTANT
         LoadCars(_gameData);
         LoadDrivers(); // TODO: parse _gameData when it's configurable
-        LoadRaces(); // TODO: parse _gameData when it's configurable
+        LoadSegments(_gameData);
+        LoadTracks(_gameData);
+        LoadRaces(_gameData);
         RunGame();
     }
 
@@ -140,25 +146,109 @@ class Program
             _cars.Add(c);
         }
     }
-    static void LoadDrivers() // TODO: Make configurable
+    static void LoadDrivers() // TODO: add more player fields when applicable
     {
-        Driver __player = new Driver("Player", _cars[0]);
-        Driver __driver1 = new Driver("Eduardo", _cars[1]);
+        Dictionary<string, string> playerSection = _currentSave.GetSection("player");
+        Dictionary<string, string> npcSection = _gameData.GetSection("drivers");
 
-        _drivers = [__player, __driver1];
+        // Player loading
+        _drivers.Add(new Driver(playerSection["name"], _cars[int.Parse(playerSection["carID"])]));
+
+        // npc loading
+        foreach (KeyValuePair<string, string> data in npcSection)
+        {
+            string id = data.Key;
+            string raw = data.Value;
+            string[] parts = raw.Split(',');
+
+            // Format: DriverID=Name,CarID
+            Driver d = new Driver(parts[0], _cars[int.Parse(parts[1]) - 1]);
+
+            _drivers.Add(d);
+        }
     }
-    static void LoadRaces() // TODO: Make configurable
+
+    static void LoadTracks(IniFile ini)
     {
-        Segment straight1 = new StraightSegment(250, 0);
-        Segment turn1 = new CornerSegment(250, 1, 0.8f, 15);
-        Segment straight2 = new StraightSegment(250, 2);
-        Segment turn2 = new CornerSegment(250, 3, 0.8f, 15);
+        Dictionary<string, string> section = ini.GetSection("tracks");
 
-        List<Segment> segments = [straight1, turn1, straight2, turn2];
+        foreach (KeyValuePair<string, string> data in section)
+        {
+            string id = data.Key;
+            string[] parts = data.Value.Split(',');
 
-        Track track = new Track("Circuit", segments, 1000);
-        Race race = new Race("Test Track", track, _drivers);
-        _races.Add(race);
+            string name = parts[0];
+            int laps = int.Parse(parts[1]);
+            float length = float.Parse(parts[2]);
+            int indexAmt = int.Parse(parts[3]);
+
+            List<Segment> segmentsToAdd = new List<Segment>();
+            for (int i = 4; i < 4+indexAmt; i++)
+                segmentsToAdd.Add(_segments[int.Parse(parts[i])-1]);
+
+            Track track = new Track(name, laps, length, segmentsToAdd);
+
+            _tracks.Add(track);
+        }
     }
-    static void LoadTracks() { } // REMOVE: if needed
+
+    static void LoadSegments(IniFile ini)
+    {
+        Dictionary<string, string> section = ini.GetSection("segments");
+
+        foreach (KeyValuePair<string, string> data in section)
+        {
+            Segment seg;
+            string id = data.Key;
+            string[] parts = data.Value.Split(',');
+
+            string type = parts[0];          // straight / corner
+            float length = float.Parse(parts[1]);
+            int index = int.Parse(parts[2]);
+
+            if (type == "corner")
+            {
+                float difficulty = float.Parse(parts[3].Replace("f", ""));
+                float maxSpeed = float.Parse(parts[4]);
+                seg = new CornerSegment(length, index, difficulty, maxSpeed);
+            }
+            else { seg = new StraightSegment(length, index); }
+
+            _segments.Add(seg);
+        }
+    }
+
+    static void LoadRaces(IniFile ini)
+    {
+        Dictionary<string, string> section = ini.GetSection("races");
+
+        foreach (KeyValuePair<string, string> data in section)
+        {
+            string id = data.Key;
+            string[] parts = data.Value.Split(',');
+
+            string name = parts[0];
+            int trackIndex = int.Parse(parts[1]) - 1;
+            bool isFinished = bool.Parse(parts[11]);
+            if (isFinished)
+            {
+                List<string> places = new List<string>();
+                for (int i = 9 ; i < 17 ; i++)
+                {
+                    places.Add(_drivers[int.Parse(parts[i])-1].GetName());
+                }
+            }
+
+            List<Driver> driverIDs = new List<Driver>();
+            for (int i = 2; i < 10; i++)
+                driverIDs.Add(_drivers[int.Parse(parts[i])-1]);
+
+            string weather = parts[^1];
+            
+            // Format: RaceID=Name,trackID,drivers,weather,isFinished,places
+            Race race = new Race(name, _tracks[trackIndex], driverIDs, weather, isFinished);
+
+            _races.Add(race);
+        }
+    }
 }

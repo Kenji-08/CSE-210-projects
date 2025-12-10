@@ -1,27 +1,29 @@
-class Race // TODO: add functionality for random drivers
+class Race // TODO: add functionality for random drivers and laps and for loading when it's finished
 {
     string _name;
     Track _track;
-    List<Driver> _places = new List<Driver>();
+    List<String> _places = new List<string>();
     List<Driver> _drivers;
     string _weather;
     bool _finished;
 
-    public Race(string name, Track track, List<Driver> drivers)
+    public Race(string name, Track track, List<Driver> drivers, string weather, bool isFinished)
     {
         _name = name;
         _track = track;
-        _weather = "Clear";
+        _weather = weather;
         _drivers = drivers;
-        _finished = false;
+        _finished = isFinished;
     }
 
-    public Race(string name, Track track, List<Driver> places, string weather)
+   public Race(string name, Track track, List<Driver> drivers, string weather, bool isFinished, List<String> places)
     {
         _name = name;
         _track = track;
-        _places = places;
         _weather = weather;
+        _drivers = drivers;
+        _finished = isFinished;
+        _places = places;
     }
 
 
@@ -54,7 +56,7 @@ class Race // TODO: add functionality for random drivers
         Console.WriteLine("Race has finished! Places are:");
         for (int d = 0 ; d < _places.Count() ; d++)
         {
-            Console.WriteLine($"{d+1}. {_places[d].GetName()}");
+            Console.WriteLine($"{d+1}. {_places[d]}");
         }
     }
 
@@ -63,11 +65,11 @@ class Race // TODO: add functionality for random drivers
         int driversFinished = _places.Count;
         foreach (Driver d in _drivers)
         {
-            if (d.GetCarPosition() >= _track.GetLength() && !_places.Contains(d))
+            if (d.GetCarPosition() >= _track.GetLength() && !_places.Contains(d.GetName()))
             {
-                _places.Add(d);
+                _places.Add(d.GetName());
             }
-            else if (!_places.Contains(d))
+            else if (!_places.Contains(d.GetName()))
             {
                 Segment segment = _track.GetSegment(d.GetSegmentIndex());
                 if (d.GetProgress() > 1.0f)

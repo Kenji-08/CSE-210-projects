@@ -1,12 +1,14 @@
 class Track
 {
-    string _type;
+    string _name;
     List<Segment> _segments;
     float _length;
+    int _laps;
 
-    public Track(string type, List<Segment> segments, float length)
+    public Track(string name, int laps, float length, List<Segment> segments)
     {
-        _type = type;
+        _name = name;
+        _laps = laps;
         _segments = segments;
         _length = length;
     }
