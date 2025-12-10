@@ -19,5 +19,7 @@ class CornerSegment : Segment
         return 0.5f * (1.0f - _difficulty);
     }
 
-    public float getMaxSpeed(){return _maxSpeed;}
+    override public float GetMaxSpeed() { return _maxSpeed; }
+
+    public float GetDifficulty() { return _difficulty; }
 }

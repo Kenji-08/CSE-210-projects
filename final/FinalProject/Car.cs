@@ -57,9 +57,12 @@ class Car // TODO: balance values
         _position = num;
     }
 
+    public void SetCurrentSpeed(float amt){ _currentSpeed = amt;}
+
     public void Accelerate(float segmentMod)
     {
-        _currentSpeed += (float)Math.Pow(Convert.ToDouble(_speed * _condition * _tire.GetGrip() * segmentMod), Convert.ToDouble(_acceleration)); // May change
+        float accelForce = _acceleration * _tire.GetGrip() * _condition * segmentMod;
+        _currentSpeed += accelForce;
         _position += _currentSpeed;
         if (_currentSpeed > _topSpeed)
         {
@@ -69,8 +72,10 @@ class Car // TODO: balance values
 
     public void Deccelerate()
     {
-        _currentSpeed -= _brakes / _currentSpeed;
-        if (_currentSpeed < 0) { _currentSpeed = 1;}
+        float brakeForce = _brakes * _tire.GetGrip() * _condition;
+        _currentSpeed -= brakeForce;
+
+        _currentSpeed = Math.Max(_currentSpeed, 0);
         _position += _currentSpeed;
     }
 }
