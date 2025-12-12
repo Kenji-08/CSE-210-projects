@@ -19,8 +19,9 @@ class Car // TODO: balance values
         _acceleration = acceleration;
         _topSpeed = topSpeed;
         _condition = 1.0f; // New car condition
-        _tire = tire;
         _currentSpeed = 0f;
+        _position = 0;
+        _tire = tire;
         _brakes = brakes;
     }
 
@@ -36,6 +37,8 @@ class Car // TODO: balance values
             _condition = 0.0f;
         }
     }
+
+    public float GetCondition() { return _condition; }
 
     public void ChangeTires(Tire newTire)
     {
@@ -57,7 +60,7 @@ class Car // TODO: balance values
         _position = num;
     }
 
-    public void SetCurrentSpeed(float amt){ _currentSpeed = amt;}
+    public void SetCurrentSpeed(float amt) { _currentSpeed = amt; }
 
     public void Accelerate(float segmentMod)
     {
@@ -77,5 +80,17 @@ class Car // TODO: balance values
 
         _currentSpeed = Math.Max(_currentSpeed, 0);
         _position += _currentSpeed;
+    }
+
+    public string GetStats()
+    {
+        return $"{_name}:\n\tID: {_id}\n\tSpeed(power): {_speed}\n\tBrakes: {_brakes}\n\tAcceleration: {_acceleration}";
+    }
+
+    public void ResetRaceValues()
+    {
+        _condition = 1.0f;
+        _currentSpeed = 0f;
+        _position = 0;
     }
 }

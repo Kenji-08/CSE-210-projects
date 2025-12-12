@@ -1,3 +1,6 @@
+using System.Runtime.CompilerServices;
+using static InputHelper;
+
 class Driver
 {
     private string _name;
@@ -9,6 +12,7 @@ class Driver
     private int _segmentIndex;
     private float _segmentProgress;
     private float _segmentLengthCrossed;
+    private bool _inPit = false;
 
     public Driver(string name, Car car)
     {
@@ -18,9 +22,10 @@ class Driver
         _currentPlace = 0;
         _segmentIndex = 0;
         _segmentProgress = 0.0f;
+        _segmentLengthCrossed = 0;
     }
 
-    // Loading or testing only
+
     public Driver(string name, float reaction, float cornerSkill, float agility, Car car)
     {
         _name = name;
@@ -78,8 +83,11 @@ class Driver
         float currentSpeed = _car.GetEffectiveSpeed();
         float maxSpeed = segment.GetMaxSpeed();
         bool isCorner = segment.GetType() == typeof(CornerSegment);
+        _car.UpdateCondition(-0.01f);
 
-        if (isCorner)
+        if (_car.GetCondition() < 0.2 || _inPit) { EnterPit(); _car.SetCurrentSpeed(0); }
+
+        else if (isCorner)
         {
             if (currentSpeed > maxSpeed)
             {
@@ -118,7 +126,6 @@ class Driver
 
         float crashChance = baseChance * difficulty * (1 - driverSkill);
 
-        // clamp crashChance to 0..1
         crashChance = Math.Clamp(crashChance, 0, 1);
 
         if (Random.Shared.NextDouble() < crashChance)
@@ -127,6 +134,7 @@ class Driver
             Console.WriteLine($"{_name} CRASHED in corner!");
             _car.SetPosition(_car.GetPosition() - 50); // knock back
             _car.SetCurrentSpeed(0);
+            _car.UpdateCondition(-0.2f);
             _segmentProgress = 0;
         }
         else
@@ -144,11 +152,54 @@ class Driver
 
     public void EnterPit()
     {
-
+        _inPit = true;
+        _car.UpdateCondition(0.1f);
+        if (_car.GetCondition() >= 1.0f) { _inPit = false; }
     }
 
-    public void ApplySkillModifiers()
-    {
+    public float GetCarCondition() { return _car.GetCondition(); }
 
+    public bool IsInPit() { return _inPit; }
+
+    public void AllocateSkills()
+    {
+        Console.Clear();
+        Console.WriteLine($"Reaction speed: {_reaction}");
+        Console.WriteLine($"Cornering skill: {_cornerSkill}");
+        Console.WriteLine($"Agiility: {_agility}");
+        Console.WriteLine("You have 4 points");
+        for (int i = 1; i < 5; i++)
+        {
+            string option = Input<string>($"Type R, C, or A for the skill allocation ({i}): ");
+            switch (option.ToLower())
+            {
+                case "r":
+                    _reaction += 0.3f;
+                    break;
+                case "c":
+                    _cornerSkill += 0.4f;
+                    break;
+                case "a":
+                    _agility += 0.5f;
+                    break;
+                default:
+                    i -= 1;
+                    Console.WriteLine("Not an option please try again");
+                    break;
+            }
+        }
+    }
+
+    public void SetCar(Car car) { _car = car; }
+
+    public float[] GetSkills() { return [_reaction, _cornerSkill, _agility]; }
+
+    public void ResetRaceValues()
+    {
+        _currentPlace = 0;
+        _segmentIndex = 0;
+        _segmentProgress = 0.0f;
+        _segmentLengthCrossed = 0;
+        _car.ResetRaceValues();
     }
 }

@@ -14,11 +14,12 @@ class Program
     static List<Segment> _segments = new List<Segment>();
     static IniFile _gameData;
     static IniFile _currentSave;
+    static string _currentSaveFileName;
     static string _defaultSavePath = "./Saves/";
 
     static void Main(string[] args)
     {
-        _gameData = new IniFile($"{_defaultSavePath}GameData.ini");
+        _gameData = new IniFile($"./common/GameData.ini");
         StartMenu();
     }
 
@@ -42,23 +43,23 @@ class Program
                 switch (option)
                 {
                     case 1:
+                        end = true;
                         NewGame();
                         break;
                     case 2:
+                        end = true;
                         LoadGame();
                         break;
                     case 3:
                         DisplaySaves();
                         break;
                     case 4:
+                        end = true;
                         Environment.Exit(0);
                         break;
                     default:
                         throw new Exception("Sorry that is not a valid option please try again.");
                 }
-
-                // Went through successfully
-                end = true;
             }
             catch (Exception e)
             {
@@ -71,25 +72,47 @@ class Program
 
     static void SaveGame() // TODO:
     {
-        string filePath = "";
+        Driver player = _drivers[0];
+        float[] skills = player.GetSkills();
+        string podium = "";
+
+        _currentSave.Set("player", "reaction", Convert.ToString(skills[0]));
+        _currentSave.Set("player", "cornering", Convert.ToString(skills[1]));
+        _currentSave.Set("player", "agility", Convert.ToString(skills[2]));
 
 
+        foreach (Race race in _races) // Get places
+        {
+            podium = "";
+            if (race.IsFinished())
+            {
+                foreach (string d in race.GetPodium())
+                {
+                    podium += $"{d},";
+                }
+                podium = podium.Remove(podium.Length - 1); // Gets rid of the leading comma
+                _currentSave.Set("podiums", race.GetName(), podium);
+                _currentSave.Set("places", race.GetName(), Convert.ToString(race.GetDriverPlace(player.GetName())));
+            }
+        }
+        _currentSave.Save($"{_defaultSavePath}{_currentSaveFileName}");
     }
 
     static void LoadGame()
     {
         DisplaySaves(); // REMOVE: if not using this then get rid of it
 
-        string fileName = Input<string>("Please enter the file name to load: ");
-        if (!fileName.Contains(".ini"))
+        _currentSaveFileName = Input<string>("Please enter the file name to load: ");
+        if (!_currentSaveFileName.Contains(".ini"))
         {
-            fileName += ".ini";
+            _currentSaveFileName += ".ini";
         }
 
         // try
         // {
-        _currentSave = new IniFile($"{_defaultSavePath}{fileName}");
+        _currentSave = new IniFile($"{_defaultSavePath}{_currentSaveFileName}");
         LoadCommonData();
+        RunGame();
         // }
         // catch (Exception e) // CHANGE: if wanted
         // {
@@ -100,37 +123,96 @@ class Program
         // }
     }
 
-    static void NewGame() // TODO: add loading in common stuff and make skill allocation name and such
+    static void NewGame()
     {
-        string fileName = Input<string>("Please enter the name of this save file: ");
-        _currentSave = new IniFile($"{_defaultSavePath}{fileName}");
+        _currentSaveFileName = Input<string>("Please enter the name of this save file: ");
+        if (!_currentSaveFileName.Contains(".ini"))
+        {
+            _currentSaveFileName += ".ini";
+        }
+
+        _currentSave = new IniFile($"./common/SaveTemp.ini");
+        string name = Input<string>("What is your drivers name? ");
+
+        LoadCommonData();
+        Driver player = _drivers[0];
+
+        Console.WriteLine("Car selection:");
+        foreach (Car car in _cars)
+        {
+            Console.WriteLine(car.GetStats());
+        }
+
+        int carID = Input<int>("Please enter the ID number of the car you want to drive for this career: ");
+        player.SetCar(_cars[carID - 1]);
+
+        player.AllocateSkills();
+        float[] skills = player.GetSkills();
+
+        _drivers[0] = player; // Updates the player in the drivers list
+
+
+        _currentSave.Set("player", "name", name);
+        _currentSave.Set("player", "reaction", Convert.ToString(skills[0]));
+        _currentSave.Set("player", "cornering", Convert.ToString(skills[1]));
+        _currentSave.Set("player", "agility", Convert.ToString(skills[2]));
+        _currentSave.Set("player", "carID", Convert.ToString(carID));
+        _currentSave.Set("player", "currentRace", "0");
+
+        _currentSave.Save($"{_defaultSavePath}{_currentSaveFileName}");
+        RunGame();
     }
 
     static void LoadCommonData()
     {
         // LOAD ORDER IS VERY IMPORTANT
         LoadCars(_gameData);
-        LoadDrivers(); // TODO: parse _gameData when it's configurable
+        LoadDrivers();
         LoadSegments(_gameData);
         LoadTracks(_gameData);
         LoadRaces(_gameData);
-        RunGame();
     }
 
-    static void RunGame() // TODO:
+    static void RunGame()
     {
         foreach (Race race in _races)
         {
-            race.StartRace();
+            if (!race.IsFinished()) // Runs only races in progress.
+            {
+                race.StartRace();
+                if (race.GetName() != "Grand Prix")
+                {
+                    string option = Input<string>("Would you like to save & continue (s) continue without saving (c) or quit & save (q)? ");
+                    if (option.ToLower() == "s") { SaveGame(); }
+                    else if (option.ToLower() == "q") { SaveGame(); Environment.Exit(0); }
+
+                    _drivers[0].AllocateSkills();
+                }
+                else
+                {
+                    SaveGame();
+                    // TODO: add career stats maybe?
+                }
+            }
         }
     }
 
-    static void DisplaySaves() // TODO: maybe
+    static void DisplaySaves()
     {
+        string root = "./Saves/";
 
+        // Get a list of all subdirectories
+
+        IEnumerable<string> files = from file in Directory.EnumerateFiles(root) select file;
+        Console.WriteLine("Files: {0}", files.Count<string>().ToString());
+        Console.WriteLine("List of Files");
+        foreach (string file in files)
+        {
+            Console.WriteLine("{0}", file);
+        }
     }
 
-    static void LoadCars(IniFile ini) // TODO: finish constructor
+    static void LoadCars(IniFile ini)
     {
         Dictionary<string, string> section = _gameData.GetSection("cars");
 
@@ -152,7 +234,7 @@ class Program
         Dictionary<string, string> npcSection = _gameData.GetSection("drivers");
 
         // Player loading
-        _drivers.Add(new Driver(playerSection["name"], _cars[int.Parse(playerSection["carID"])]));
+        _drivers.Add(new Driver(playerSection["name"], Single.Parse(playerSection["reaction"]), Single.Parse(playerSection["cornering"]), Single.Parse(playerSection["agility"]), _cars[int.Parse(playerSection["carID"]) - 1]));
 
         // npc loading
         foreach (KeyValuePair<string, string> data in npcSection)
@@ -161,8 +243,8 @@ class Program
             string raw = data.Value;
             string[] parts = raw.Split(',');
 
-            // Format: DriverID=Name,CarID
-            Driver d = new Driver(parts[0], _cars[int.Parse(parts[1]) - 1]);
+            // Format: DriverID=Name,Reaction,CornerSkill,Agility,CarID
+            Driver d = new Driver(parts[0], float.Parse(parts[1]), float.Parse(parts[2]), float.Parse(parts[3]), _cars[int.Parse(parts[4]) - 1]);
 
             _drivers.Add(d);
         }
@@ -183,8 +265,8 @@ class Program
             int indexAmt = int.Parse(parts[3]);
 
             List<Segment> segmentsToAdd = new List<Segment>();
-            for (int i = 4; i < 4+indexAmt; i++)
-                segmentsToAdd.Add(_segments[int.Parse(parts[i])-1]);
+            for (int i = 4; i < 4 + indexAmt; i++)
+                segmentsToAdd.Add(_segments[int.Parse(parts[i]) - 1]);
 
             Track track = new Track(name, laps, length, segmentsToAdd);
 
@@ -204,7 +286,7 @@ class Program
 
             string type = parts[0];          // straight / corner
             float length = float.Parse(parts[1]);
-            int index = int.Parse(parts[2]);
+            int index = int.Parse(parts[2])-1;
 
             if (type == "corner")
             {
@@ -233,18 +315,18 @@ class Program
             if (isFinished)
             {
                 List<string> places = new List<string>();
-                for (int i = 9 ; i < 17 ; i++)
+                for (int i = 9; i < 17; i++)
                 {
-                    places.Add(_drivers[int.Parse(parts[i])-1].GetName());
+                    places.Add(_drivers[int.Parse(parts[i]) - 1].GetName());
                 }
             }
 
             List<Driver> driverIDs = new List<Driver>();
             for (int i = 2; i < 10; i++)
-                driverIDs.Add(_drivers[int.Parse(parts[i])-1]);
+                driverIDs.Add(_drivers[int.Parse(parts[i]) - 1]);
 
             string weather = parts[^1];
-            
+
             // Format: RaceID=Name,trackID,drivers,weather,isFinished,places
             Race race = new Race(name, _tracks[trackIndex], driverIDs, weather, isFinished);
 
