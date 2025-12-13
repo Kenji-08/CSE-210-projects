@@ -1,4 +1,6 @@
-class Race // TODO: add functionality for random drivers and laps and for loading when it's finished
+using System.ComponentModel;
+
+class Race // TODO: implement laps
 {
     string _name;
     Track _track;
@@ -27,13 +29,15 @@ class Race // TODO: add functionality for random drivers and laps and for loadin
     }
 
 
-    public void StartRace() // TODO: add the start lights logic and make it prettier
+    public void StartRace(int tickMs, int displayMs) // TODO: add the start lights logic and make it prettier
     {
         // Reset all driver stuff from last race
         foreach (Driver d in _drivers)
         {
             d.ResetRaceValues();
+            d.ReadyReaction();
         }
+
         long tick = 0;
         int second = 1000;
         int minute = second * 60;
@@ -41,24 +45,27 @@ class Race // TODO: add functionality for random drivers and laps and for loadin
         {
             Console.Clear();
             Console.WriteLine($"The {_name} starts in...");
-            Console.WriteLine(Math.Round(time,2));
+            Console.WriteLine(Math.Round(time, 2));
             Thread.Sleep(10);
         }
-       
+
         do
         {
-            tick += 250;
-            Update();
-            DisplayStats();
-            Thread.Sleep(250);
+            Update(tickMs);
+            tick += tickMs;
+            Thread.Sleep(tickMs);
 
-            if (tick >= minute) // Prevents from inf loop
+            if (tick % displayMs == 0)
+            {
+                DisplayStats();
+            }
+
+            if (tick >= minute * 5) // Prevents from inf loop
             {
                 _finished = true;
             }
         }
         while (!_finished);
-
     }
 
     public void EndRace()
@@ -69,14 +76,20 @@ class Race // TODO: add functionality for random drivers and laps and for loadin
         {
             Console.WriteLine($"{d + 1}. {_places[d]}");
         }
+        InputHelper.Input<string>("Press enter to continue ");
     }
 
-    public void Update() // TODO: add reactionTime functionality
+    public void Update(int tickMs) // TODO: add reactionTime functionality
     {
-        int driversFinished = _places.Count;
         foreach (Driver d in _drivers)
         {
-            if (d.GetCarPosition() >= _track.GetLength() && !_places.Contains(d.GetName()))
+            if (!d.HasReacted())
+            {
+                d.TickReaction(tickMs);
+                continue; // driver does nothing yet
+            }
+
+            if (d.GetCarPosition() >= _track.GetLength() * _track.GetLaps() && !_places.Contains(d.GetName()))
             {
                 _places.Add(d.GetName());
             }
@@ -86,48 +99,66 @@ class Race // TODO: add functionality for random drivers and laps and for loadin
                 if (d.GetProgress() > 1.0f)
                 {
                     d.AddSegmentLengthCrossed(segment.GetLength());
-                    segment = _track.GetNextSegment(d.GetSegmentIndex());
-                    d.IncrementSegmentIndex();
+
+                    if (_track.HasNextSegment(d.GetSegmentIndex()))
+                    {
+                        d.IncrementSegmentIndex();
+                        segment = _track.GetSegment(d.GetSegmentIndex());
+                    }
+                    else
+                    {
+                        // wrap back to first segment
+                        d.SetSegmentIndex(0);
+                        segment = _track.GetSegment(0);
+                    }
+
                 }
+
                 d.Drive(segment);
             }
-            if (driversFinished == _drivers.Count)
+            if (_places.Count >= _drivers.Count)
             {
                 _finished = true;
             }
         }
-
     }
 
-    public void DisplayStats()
+    public void DisplayStats() // TODO: add lap stuff
     {
         Console.Clear();
         if (!_finished)
         {
+            Console.WriteLine($"{_name}\nWeather: {_weather}");
             foreach (Driver d in _drivers)
             {
-                Console.WriteLine($"Name: {d.GetName()} Speed: {Math.Round(d.GetSpeed(), 2)} Position: {Math.Round(d.GetCarPosition(), 2)} Condition: {Math.Round(d.GetCarCondition(), 2)}");
+                double speed = Math.Round(d.GetSpeed(), 2);
+                double pos = Math.Round(d.GetCarPosition(), 2);
+                int lap = ((int)pos / (int)_track.GetLength()) + 1;
+                Console.WriteLine($"{d.GetName()} Speed: {speed} Lap: {lap} Position: {pos}");
                 if (d.IsInPit()) { Console.WriteLine("\tIs in the pit!"); }
-
-
             }
             Console.WriteLine("");
         }
         else { EndRace(); }
     }
 
-    public string GetName(){ return _name;}
-    public bool IsFinished(){ return _finished;}
-    public List<string> GetPlaces(){return _places;}
-    public List<string> GetPodium(){return _places.GetRange(0,3);}
+    public string GetName() { return _name; }
+    public bool IsFinished() { return _finished; }
+    public List<string> GetPlaces() { return _places; }
+    public List<string> GetPodium()
+    {
+        int count = Math.Min(3, _places.Count);
+        return _places.GetRange(0, count);
+    }
+
     public int GetDriverPlace(string name)
     {
         int place = 0;
-        for (int d = 0 ; d < _places.Count() ; d++)
+        for (int d = 0; d < _places.Count(); d++)
         {
             if (_places[d] == name)
             {
-                place = d+1;
+                place = d + 1;
             }
         }
 

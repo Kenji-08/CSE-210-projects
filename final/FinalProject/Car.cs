@@ -1,4 +1,4 @@
-class Car // TODO: balance values
+class Car
 {
     string _id;
     string _name;

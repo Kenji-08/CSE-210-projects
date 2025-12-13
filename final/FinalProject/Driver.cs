@@ -5,10 +5,13 @@ class Driver
 {
     private string _name;
     private float _reaction;
+    int _reactionDelayMs;
+    int _reactionTimerMs;
+    bool _hasReacted;
+
     private float _cornerSkill;
     private float _agility;
     private Car _car;
-    private int _currentPlace;
     private int _segmentIndex;
     private float _segmentProgress;
     private float _segmentLengthCrossed;
@@ -18,8 +21,7 @@ class Driver
     {
         _name = name;
         _car = car;
-        _reaction = 0.5f; // Subject to change based on balancing
-        _currentPlace = 0;
+        _reaction = 0.5f;
         _segmentIndex = 0;
         _segmentProgress = 0.0f;
         _segmentLengthCrossed = 0;
@@ -33,7 +35,6 @@ class Driver
         _cornerSkill = cornerSkill;
         _agility = agility;
         _car = car;
-        _currentPlace = 0;
         _segmentIndex = 0;
         _segmentProgress = 0.0f;
     }
@@ -78,12 +79,31 @@ class Driver
         _segmentLengthCrossed += len;
     }
 
+    public void ReadyReaction()
+    {
+        // Reaction stat ~ 0.8 – 2.0
+        _reactionDelayMs = (int)(600 / _reaction);
+
+        _reactionDelayMs = Math.Clamp(_reactionDelayMs, 150, 700);
+
+        _reactionTimerMs = _reactionDelayMs;
+        _hasReacted = false;
+    }
+
     public void Drive(Segment segment)
     {
         float currentSpeed = _car.GetEffectiveSpeed();
         float maxSpeed = segment.GetMaxSpeed();
         bool isCorner = segment.GetType() == typeof(CornerSegment);
-        _car.UpdateCondition(-0.01f);
+
+        // Car wear
+        float speedFactor = _car.GetEffectiveSpeed() * 0.0006f;
+        float randomFactor = Random.Shared.NextSingle() * 0.0003f;
+        float driverSkill = 1f - (_agility * 0.03f);
+        driverSkill = Math.Clamp(driverSkill, 0.7f, 1.05f);
+        float wear = (speedFactor + randomFactor) * driverSkill;
+        _car.UpdateCondition(-wear);
+
 
         if (_car.GetCondition() < 0.2 || _inPit) { EnterPit(); _car.SetCurrentSpeed(0); }
 
@@ -144,12 +164,6 @@ class Driver
         }
     }
 
-
-    public void AttemptOvertake(Driver other)
-    {
-
-    }
-
     public void EnterPit()
     {
         _inPit = true;
@@ -196,10 +210,30 @@ class Driver
 
     public void ResetRaceValues()
     {
-        _currentPlace = 0;
         _segmentIndex = 0;
         _segmentProgress = 0.0f;
         _segmentLengthCrossed = 0;
         _car.ResetRaceValues();
+    }
+
+    public void FinishSegment()
+    {
+        _segmentProgress = 1.0f;
+    }
+
+    public void SetSegmentIndex(int index) { _segmentIndex = index; }
+
+    public void TickReaction(int deltaMs)
+    {
+        if (_hasReacted) return;
+
+        _reactionTimerMs -= deltaMs;
+        if (_reactionTimerMs <= 0)
+            _hasReacted = true;
+    }
+
+    public bool HasReacted()
+    {
+        return _hasReacted;
     }
 }

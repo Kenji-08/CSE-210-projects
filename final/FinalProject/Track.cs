@@ -15,13 +15,28 @@ class Track
 
     public Segment GetNextSegment(int currentIndex)
     {
-        return _segments[currentIndex+1];
+        if (currentIndex + 1 >= _segments.Count)
+        {
+            // loop back to first segment
+            return _segments[0];
+        }
+
+        return _segments[currentIndex + 1];
     }
+
 
     public Segment GetSegment(int index)
     {
         return _segments[index];
     }
 
-    public float GetLength(){return _length;}
+    public float GetLength() { return _length; }
+
+    public bool HasNextSegment(int index)
+    {
+        return index + 1 < _segments.Count;
+    }
+
+    public int GetLaps() { return _laps; }
+
 }
