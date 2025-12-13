@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-class Race // TODO: implement laps
+class Race
 {
     string _name;
     Track _track;
@@ -29,7 +29,7 @@ class Race // TODO: implement laps
     }
 
 
-    public void StartRace(int tickMs, int displayMs) // TODO: add the start lights logic and make it prettier
+    public void StartRace(int tickMs, int displayMs)
     {
         // Reset all driver stuff from last race
         foreach (Driver d in _drivers)
@@ -79,7 +79,7 @@ class Race // TODO: implement laps
         InputHelper.Input<string>("Press enter to continue ");
     }
 
-    public void Update(int tickMs) // TODO: add reactionTime functionality
+    public void Update(int tickMs)
     {
         foreach (Driver d in _drivers)
         {
@@ -123,7 +123,7 @@ class Race // TODO: implement laps
         }
     }
 
-    public void DisplayStats() // TODO: add lap stuff
+    public void DisplayStats()
     {
         Console.Clear();
         if (!_finished)
